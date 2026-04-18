@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import Link from "next/link";
+import { FiArrowUpRight } from "react-icons/fi";
 import PriceHistoryChart from "./PriceHistoryChart";
 import BackButton from "./BackButton";
 
@@ -123,6 +124,10 @@ function getOutcomeHref(game: Game, teamName: string) {
   });
 
   return `/bet?${params.toString()}`;
+}
+
+function getPolymarketHref(game: Game) {
+  return `https://polymarket.com/sports/${game.sport_key}/${game.slug}`;
 }
 
 function getLogoClassName(sportKey: string) {
@@ -258,7 +263,17 @@ export default async function EventPage({ params }: EventPageProps) {
         </header>
 
         <section className="min-w-0 rounded-[32px] bg-zinc-950 p-6 sm:p-8">
-          <div className="text-center">
+          <div className="relative text-center">
+            <Link
+              href={getPolymarketHref(game)}
+              target="_blank"
+              rel="noreferrer"
+              className="absolute right-0 -top-7 md:top-0 inline-flex items-center gap-1.5 rounded-full border border-zinc-800 px-3 py-1.5 text-[12px] font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-white"
+            >
+              <span>Polymarket</span>
+              <FiArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+
             <div className="text-[12px] font-medium uppercase tracking-[0.18em] text-zinc-500">
               {game.sport_title}
             </div>
