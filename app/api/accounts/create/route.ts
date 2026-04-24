@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     }
 
     const selectedPlan = PLAN_CONFIG[planKey];
+    const planSize = Number(selectedPlan.planKey);
 
     const { data: existingUser, error: existingUserError } = await supabaseAdmin
       .from("users")
@@ -79,9 +80,20 @@ export async function POST(req: Request) {
         .insert({
           user_id: userId,
           plan_key: selectedPlan.planKey,
-          plan_size: Number(selectedPlan.planKey),
+          plan_size: planSize,
+          starting_balance: planSize,
+          current_balance: planSize,
+          reserved_risk: 0,
+          realized_pnl: 0,
           one_time_fee: selectedPlan.feeAmount,
           status: "active_dev",
+
+          profit_target_percent: 30,
+          daily_drawdown_percent: 10,
+          total_drawdown_percent: 20,
+          min_trading_days: 7,
+          max_inactivity_days: 14,
+          max_risk_per_trade_percent: 5,
         })
         .select("id")
         .single();
@@ -92,14 +104,21 @@ export async function POST(req: Request) {
 
     const accountId = insertedAccount.id as string;
 
-    const { error: eventError } = await supabaseAdmin.from("account_events").insert({
-      account_id: accountId,
-      type: "account_created",
-      payload: {
-        planKey: selectedPlan.planKey,
-        feeAmount: selectedPlan.feeAmount,
-      },
-    });
+    const { error: eventError } = await supabaseAdmin
+      .from("account_events")
+      .insert({
+        account_id: accountId,
+        type: "account_created",
+        payload: {
+          planKey: selectedPlan.planKey,
+          planSize,
+          feeAmount: selectedPlan.feeAmount,
+          startingBalance: planSize,
+          currentBalance: planSize,
+          reservedRisk: 0,
+          realizedPnl: 0,
+        },
+      });
 
     if (eventError) {
       throw eventError;

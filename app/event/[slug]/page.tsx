@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FiArrowUpRight } from "react-icons/fi";
 import PriceHistoryChart from "./PriceHistoryChart";
 import BackButton from "./BackButton";
+import BetSlipModal from "@/app/components/BetSlipModal";
 
 type OddsOutcome = {
   name: string;
@@ -115,17 +116,6 @@ function getOutcomeByName(
   return outcomes?.find((outcome) => outcome.name === teamName);
 }
 
-function getOutcomeHref(game: Game, teamName: string) {
-  const params = new URLSearchParams({
-    gameId: game.id,
-    team: teamName,
-    league: game.sport_key,
-    market: "h2h",
-  });
-
-  return `/bet?${params.toString()}`;
-}
-
 function getPolymarketHref(game: Game) {
   return `https://polymarket.com/sports/${game.sport_key}/${game.slug}`;
 }
@@ -146,37 +136,18 @@ function getLogoFallbackClassName(sportKey: string) {
   return "h-14 w-14 rounded-md border border-zinc-800 bg-zinc-950";
 }
 
-function OddsAction({
-  value,
-  href,
-}: {
-  value: string;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex min-h-[56px] min-w-[104px] items-center justify-center overflow-hidden rounded-2xl border border-zinc-800 bg-transparent px-4 py-3 text-center transition-colors hover:bg-zinc-900"
-    >
-      <div className="text-[20px] font-semibold tracking-tight text-zinc-100">
-        {value}
-      </div>
-    </Link>
-  );
-}
-
 function TeamPanel({
   team,
   info,
   sportKey,
   price,
-  href,
+  game,
 }: {
   team: string;
   info?: TeamInfo;
   sportKey: string;
   price?: number;
-  href: string;
+  game: Game;
 }) {
   const impliedPercent = formatImpliedPercent(price);
   const americanOdds = formatPrice(price);
@@ -215,7 +186,16 @@ function TeamPanel({
           <div className="text-[11px] uppercase tracking-[0.16em] text-zinc-500">
             Moneyline
           </div>
-          <OddsAction value={americanOdds} href={href} />
+
+          <BetSlipModal
+            team={team}
+            gameId={game.id}
+            league={game.sport_key}
+            market="h2h"
+            odds={americanOdds}
+            impliedPercent={impliedPercent}
+            matchup={`${game.away_team} vs. ${game.home_team}`}
+          />
         </div>
       </div>
     </div>
@@ -268,7 +248,7 @@ export default async function EventPage({ params }: EventPageProps) {
               href={getPolymarketHref(game)}
               target="_blank"
               rel="noreferrer"
-              className="absolute right-0 -top-7 md:top-0 inline-flex items-center gap-1.5 rounded-full border border-zinc-800 px-3 py-1.5 text-[12px] font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-white"
+              className="absolute right-0 -top-7 inline-flex items-center gap-1.5 rounded-full border border-zinc-800 px-3 py-1.5 text-[12px] font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-white md:top-0"
             >
               <span>Polymarket</span>
               <FiArrowUpRight className="h-3.5 w-3.5" />
@@ -293,7 +273,7 @@ export default async function EventPage({ params }: EventPageProps) {
               info={game.away_team_info}
               sportKey={game.sport_key}
               price={awayMoneyline?.price}
-              href={getOutcomeHref(game, game.away_team)}
+              game={game}
             />
 
             <TeamPanel
@@ -301,7 +281,7 @@ export default async function EventPage({ params }: EventPageProps) {
               info={game.home_team_info}
               sportKey={game.sport_key}
               price={homeMoneyline?.price}
-              href={getOutcomeHref(game, game.home_team)}
+              game={game}
             />
           </div>
 

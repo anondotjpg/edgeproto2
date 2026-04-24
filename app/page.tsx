@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { headers } from "next/headers";
-import Image from "next/image";
 import { FiArrowUpRight } from "react-icons/fi";
 import LastUpdatedAgo from "./components/LastUpdatedAgo";
 
@@ -111,17 +110,6 @@ function getOutcomeByName(
   return outcomes?.find((outcome) => outcome.name === teamName);
 }
 
-function getOutcomeHref(game: Game, teamName: string) {
-  const params = new URLSearchParams({
-    gameId: game.id,
-    team: teamName,
-    league: game.sport_key,
-    market: "h2h",
-  });
-
-  return `/bet?${params.toString()}`;
-}
-
 function OddsCell({
   value,
   href,
@@ -202,6 +190,7 @@ function GameCard({ game }: { game: Game }) {
 
   const awayMoneyline = getOutcomeByName(h2h, game.away_team);
   const homeMoneyline = getOutcomeByName(h2h, game.home_team);
+  const eventHref = `/event/${game.slug}`;
 
   return (
     <article className="relative rounded-[24px] border border-zinc-800 bg-zinc-950 p-4 pb-12">
@@ -231,12 +220,12 @@ function GameCard({ game }: { game: Game }) {
         <div className="overflow-hidden rounded-2xl border border-zinc-800">
           <OddsCell
             value={formatPrice(awayMoneyline?.price)}
-            href={getOutcomeHref(game, game.away_team)}
+            href={eventHref}
             isTop
           />
           <OddsCell
             value={formatPrice(homeMoneyline?.price)}
-            href={getOutcomeHref(game, game.home_team)}
+            href={eventHref}
           />
         </div>
       </div>
@@ -246,7 +235,7 @@ function GameCard({ game }: { game: Game }) {
       </div>
 
       <Link
-        href={`/event/${game.slug}`}
+        href={eventHref}
         className="absolute bottom-4 right-4 inline-flex items-center gap-1.5 text-[12px] font-medium text-zinc-400 transition-colors hover:text-white"
       >
         <span>View</span>
@@ -310,7 +299,7 @@ export default async function Home({
           <header>
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
               <div className="min-w-0 flex-1">
-                <div className="no-scrollbar flex items-center gap-4 overflow-x-auto sm:gap-2 relative z-20">
+                <div className="no-scrollbar relative z-20 flex items-center gap-4 overflow-x-auto sm:gap-2">
                   {LEAGUES.map((item) => {
                     const isActive = item.league === selectedLeague;
 
